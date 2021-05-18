@@ -51,12 +51,33 @@ public class ProjectController {
         //List <Project> = projectService.getAllProjects();
     }*/
 
-
+    //save project
     @PostMapping("/saveProject")
     @PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
     public void saveProject(@Valid @RequestBody Project project) {
         // save project to database
         projectService.saveProject(project);
 
+    }
+    
+    // edit selected Project
+    @GetMapping("/editProject/{id}")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
+    public Project editProject(@PathVariable (value = "id") long id) {
+
+        // get project from the service
+        Project project = projectService.getProjectById(id);
+
+        return project;
+    }
+    
+    // update the selected Project
+    @PutMapping("/updateProject/{id}")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
+    public void updateProject(@Valid @RequestBody Project project) {
+
+        // update existing project
+        //projectService.updateProject(project);
+        projectService.saveProject(project);
     }
 }
