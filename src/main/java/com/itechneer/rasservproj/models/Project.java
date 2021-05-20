@@ -1,14 +1,26 @@
 package com.itechneer.rasservproj.models;
 
+import org.hibernate.annotations.*;
+
 import javax.persistence.*;
+import javax.persistence.Entity;
+import javax.persistence.Table;
+import javax.persistence.criteria.CriteriaBuilder;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Size;
+import java.io.Serializable;
 import java.util.Date;
 
 
 @Entity
 @Table(name = "Project")
-public class Project {
+@SQLDelete(sql = "UPDATE Project SET deleted=true WHERE id=?")
+@Where(clause = "deleted=false")
+@FilterDef(name = "deletedProjectFilter", parameters = @ParamDef(name = "isDeleted", type = "boolean"))
+@Filter(name = "deletedProjectFilter", condition = "deleted = :isDeleted")
+public class Project implements Serializable {
+
+    private static final long serialVersionUID = 1L;
 
     @Id
     @GeneratedValue(strategy =  GenerationType.IDENTITY)
@@ -34,16 +46,20 @@ public class Project {
     @Size(max = 355)
     private String detail;
 
+    @Column
+    private boolean deleted = Boolean.FALSE;
+
     public Project() {
     }
 
-    public Project(String projname, int projcost, Date startdate, Date enddate, short numresource, String detail) {
+    public Project(String projname, int projcost, Date startdate, Date enddate, short numresource, String detail, boolean deleted) {
         this.projname = projname;
         this.projcost = projcost;
         this.startdate = startdate;
         this.enddate = enddate;
         this.numresource = numresource;
         this.detail = detail;
+        this.deleted = deleted;
     }
 
     public long getId() {
@@ -86,23 +102,7 @@ public class Project {
         this.enddate = enddate;
     }
 
-    //    public String getStartdate() {
-//        return startdate;
-//    }
-//
-//    public void setStartdate(String startdate) {
-//        this.startdate = startdate;
-//    }
-//
-//    public String getEnddate() {
-//        return enddate;
-//    }
-//
-//    public void setEnddate(String enddate) {
-//        this.enddate = enddate;
-//    }
-
-    public short getNumresource() {
+   public short getNumresource() {
         return numresource;
     }
 
@@ -118,6 +118,14 @@ public class Project {
         this.detail = detail;
     }
 
+    public boolean isDeleted() {
+        return deleted;
+    }
+
+    public void setDeleted(boolean deleted) {
+        this.deleted = deleted;
+    }
+
     @Override
     public String toString() {
         return "Project{" +
@@ -128,6 +136,7 @@ public class Project {
                 ", enddate=" + enddate +
                 ", numresource=" + numresource +
                 ", detail='" + detail + '\'' +
+                ", deleted=" + deleted +
                 '}';
     }
 }
