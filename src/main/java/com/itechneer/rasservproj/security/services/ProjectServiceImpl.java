@@ -2,6 +2,8 @@ package com.itechneer.rasservproj.security.services;
 
 import com.itechneer.rasservproj.models.Project;
 import com.itechneer.rasservproj.repository.ProjectRepository;
+import org.hibernate.Filter;
+import org.hibernate.Session;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -9,6 +11,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import javax.persistence.EntityManager;
 import java.util.List;
 import java.util.Optional;
 
@@ -17,6 +20,9 @@ public class ProjectServiceImpl implements ProjectService {
 
     @Autowired
     private ProjectRepository projectRepository;
+
+    @Autowired
+    private EntityManager entityManager;
 
     @Override
     public List<Project> getAllProjects() {
@@ -41,8 +47,22 @@ public class ProjectServiceImpl implements ProjectService {
     }
 
     @Override
+    public void updateProject(Project project) {
+        projectRepository.saveAndFlush(project);
+    }
+
+    @Override
     public void deleteProjectById(long id) {
-        this.projectRepository.deleteById(id);
+        projectRepository.deleteById(id);
+    }
+
+    public Iterable<Project> findAll(boolean isDeleted) {
+        Session session = entityManager.unwrap(Session.class);
+        Filter filter = session.enableFilter("deletedProjectFilter");
+        filter.setParameter("isDeleted", isDeleted);
+        Iterable<Project> projects = projectRepository.findAll();
+        session.disableFilter("deletedProjectFilter");
+        return projects;
     }
 
     @Override
