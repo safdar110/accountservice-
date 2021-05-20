@@ -45,12 +45,7 @@ public class ProjectServiceImpl implements ProjectService {
         }
         return project;
     }
-
-    @Override
-    public void updateProject(Project project) {
-        projectRepository.saveAndFlush(project);
-    }
-
+    
     @Override
     public void deleteProjectById(long id) {
         projectRepository.deleteById(id);
