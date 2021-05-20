@@ -21,37 +21,16 @@ import java.util.List;
 @RequestMapping ("/api/project")
 public class ProjectController {
 
-//    @Autowired
-//    private ProjectService projectService;
-
     @Autowired
     private ProjectServiceImpl projectService;
 
     // display list of projects
     @GetMapping("/home")
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
-    public List <Project> viewHomePage() {
-        //return this.projectService.getAllProjects();
-        return projectService.getAllProjects();
-
+    public Iterable<Project> findAll(@RequestParam (value="isDeleted", required = false, defaultValue = "false")boolean isDeleted){
+        return projectService.findAll(isDeleted);
     }
-//    public ResponseEntity <?> viewHomePage() {
-//        //return this.projectService.getAllProjects();
-//
-//        return ResponseEntity.ok(projectService.getAllProjects());
-//
-//    }
 
-    // display list of projects
-    /*@GetMapping("/searchByName")
-    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
-    public List <Project> searchByName(Model model) {
-        //findPaginated(1, "projname", "asc", model);
-        //"project home access";
-        //List <Project> = projectService.getAllProjects();
-    }*/
-
-    //save project
     @PostMapping("/saveProject")
     @PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
     public void saveProject(@Valid @RequestBody Project project) {
@@ -59,10 +38,10 @@ public class ProjectController {
         projectService.saveProject(project);
 
     }
-    
-    // edit selected Project
+
+    //// edit selected Project
     @GetMapping("/editProject/{id}")
-    @PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
+    @PreAuthorize("hasRole('ADMIN')")
     public Project editProject(@PathVariable (value = "id") long id) {
 
         // get project from the service
@@ -70,7 +49,7 @@ public class ProjectController {
 
         return project;
     }
-    
+
     // update the selected Project
     @PutMapping("/updateProject/{id}")
     @PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
@@ -79,5 +58,34 @@ public class ProjectController {
         // update existing project
         //projectService.updateProject(project);
         projectService.saveProject(project);
+    }
+
+    @PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
+    @DeleteMapping("/deleteProject/{id}")
+    public void delete(@PathVariable("id") Long id) {
+        projectService.deleteProjectById(id);
+    }
+
+    @GetMapping("/page/{pageNo}")
+    public String findPaginated(@PathVariable(value = "pageNo") int pageNo,
+                                @RequestParam("sortField") String sortField,
+                                @RequestParam("sortDir") String sortDir,
+                                Model model) {
+        int pageSize = 5;
+
+        Page<Project> page = projectService.findPaginated(pageNo, pageSize, sortField, sortDir);
+        List<Project> listProjects = page.getContent();
+
+        model.addAttribute("currentPage", pageNo);
+        model.addAttribute("totalPages", page.getTotalPages());
+        model.addAttribute("totalItems", page.getTotalElements());
+
+        model.addAttribute("sortField", sortField);
+        model.addAttribute("sortDir", sortDir);
+        model.addAttribute("reverseSortDir", sortDir.equals("asc") ? "desc" : "asc");
+
+        model.addAttribute("listProjects", listProjects);
+        return "index";
+
     }
 }
